@@ -1,0 +1,11 @@
+name:Level 1
+dmap:10,5
+dtile:16,16
+file:0,ground.png
+tile:A,0,0,0,block
+tile:B,0,1,0,block
+tile:C,0,2,0,block
+tile:D,0,0,1,coin
+tile:E,0,1,1,decor
+layer:0,   BBBB             AA DDDD AACCCCCCCCCCCCCCCCCCCC
+layer:1,          EE      EE                              
