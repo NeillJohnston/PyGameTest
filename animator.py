@@ -400,6 +400,8 @@ if __name__ == '__main__':
     ss = SpriteSheet('sprites.png')
     a = Animated(ss.animations, ss['walk'])
     
+    pygame.image.save(+a, 'test_save.png')
+    
     while True:
         for e in pygame.event.get():
             if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):

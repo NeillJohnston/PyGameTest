@@ -32,4 +32,8 @@ class ImageLoader:
             self.init()
     
     def init(self):
-        
+        pass
+
+"""
+Something something pygame.image.save(image=Surface, filename=str)
+"""
