@@ -161,6 +161,102 @@ class SpriteSheet:
                 return None
 
 
+class TileSheet:
+    """Create a tile sheet from an image and accompanying meta file."""
+    
+    def __init__(self, file_path, auto=True):
+        """Construct a tile sheet from the image file file_path and meta file file_path.meta.
+        
+        auto: Auto-init, if set to false, the sprite sheet will have to be initialized by calling init().
+        """
+        self.file_path = file_path
+        
+        # Necessary variables from meta, will throw error if one of these do not exist
+        self.tile_w, self.tile_h = None, None
+        
+        # Optional variables from meta
+        self.offset_w, self.offset_h = 0, 0
+        self.border_w, self.border_h = 0, 0
+        self.color_key = None
+        self.tiles = None
+        
+        if auto:
+            self.init()
+    
+    def init(self):
+        """The actual construction of the sprite sheet."""
+        i, key = 0, ''
+        try:
+            # Load meta
+            with open(self.file_path + '.meta') as meta:
+                lines = meta.read().splitlines()
+                for i, attribute in enumerate(lines):
+                    # Add each attribute from meta into the SpriteSheet
+                    tokens = attribute.strip().split(' ')
+                    key = tokens[0]
+                    values = tokens[1:]
+                    # Switch on key
+                    if key == '#' or key == '':
+                        # Comment or blank line, nothing to see here
+                        pass
+                    elif key == 'echo' or key == '@':
+                        # Echo to console, just for fun
+                        print(' '.join(values))
+                    elif key == 'sheet':
+                        # Sheet setup
+                        self.tile_w, self.tile_h = int(values[0]), int(values[1])
+                        if len(values) >= 3:
+                            self.offset_w, self.offset_h = int(values[2]), int(values[3])
+                        if len(values) >= 5:
+                            self.border_w, self.border_h = int(values[4]), int(values[5])
+                    elif key == 'key' or key == 'colorkey' or key == 'bg':
+                        # Color key
+                        self.color_key = (int(values[0]), int(values[1]), int(values[2]))
+                    elif key == 'tile':
+                        # Make a tile
+                        if self.tiles == None:
+                            self.tiles = dict()
+                        if len(values) == 3:
+                            self.tiles[value[0]] = tuple(int(values[1]), int(values[2]))
+                    else:
+                        print('Error: Unrecognized key %s (line %d). Will try to continue, but there may be an issue with %s.meta.' % (key, i+1, self.file_path))
+        except FileNotFoundError:
+            print('Error: No %s.meta file found!' % (file_path))
+            sys.exit(1)
+        except IndexError:
+            print('Error: Line %d (key %s) in %s.meta may have the wrong number of arguments.' % (i+1, key, self.file_path))
+            sys.exit(1)
+        
+        # Ensure that all the necessary variables exist
+        if not all([x is not None for x in [self.sprite_w, self.sprite_h]]):
+            print('Error: TileSheet variable missing (maybe meta is incomplete?).')
+            sys.exit(1)
+            
+        # Perform the actual initialization of the sprite sheet
+        if key == None:
+            image = pygame.image.load(self.file_path).convert_alpha()
+        else:
+            image = pygame.image.load(self.file_path).convert()
+            image.set_colorkey(self.color_key)
+        
+        image_w, image_h = image.get_size()
+        self.w = (image_w + self.offset_w - 2*self.border_w) // (self.tile_w + self.offset_w)
+        self.h = (image_h + self.offset_h - 2*self.border_h) // (self.tile_h + self.offset_h)
+        
+        # Construct the sheet (2d list of Surfaces, technically subsurfaces)
+        self.sheet = []
+        for y in range(self.h):
+            self.sheet.append([])
+            for x in range(self.w):
+                rect = (self.border_w + x*(self.sprite_w + self.offset_w), self.border_h + y*(self.sprite_h + self.offset_h), \
+                    self.sprite_w, self.sprite_h)
+                self.sheet[y].append(image.subsurface(rect))
+        
+        # Create all tiles
+        for tile in tiles:
+            pass
+        
+
 class Animation:
     """An animation based on a sprite sheet.
     
@@ -302,7 +398,7 @@ if __name__ == '__main__':
     fps = 48
     
     ss = SpriteSheet('sprites.png')
-    a = Animated(ss.animations, ss['idle'])
+    a = Animated(ss.animations, ss['walk'])
     
     while True:
         for e in pygame.event.get():
