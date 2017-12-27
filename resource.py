@@ -36,4 +36,5 @@ class ImageLoader:
 
 """
 Something something pygame.image.save(image=Surface, filename=str)
+Also test?
 """
